@@ -1,0 +1,26 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { business } from '../data/site';
+
+const crumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'Quote sent', path: '/thanks' },
+];
+---
+
+<Layout
+  title="Quote sent | BL Groundworks Scotland"
+  description="Your enquiry has been sent to BL Groundworks Scotland."
+  breadcrumbs={crumbs}
+  noindex
+>
+  <section class="mx-auto max-w-3xl px-4 py-16">
+    <h1 class="font-display text-6xl font-semibold leading-none tracking-wide">Got it.</h1>
+    <p class="mt-5 text-lg leading-relaxed text-muted">
+      The enquiry is in. If it is quicker, call {business.telephoneDisplay} and talk it through.
+    </p>
+    <p class="mt-8">
+      <a href="/" class="text-sm font-bold text-lime-deep underline">Back to the homepage</a>
+    </p>
+  </section>
+</Layout>

@@ -1,0 +1,38 @@
+---
+interface Props {
+  tone?: 'light' | 'dark';
+  compact?: boolean;
+}
+
+const { tone = 'light', compact = false } = Astro.props;
+const word = tone === 'light' ? 'text-white' : 'text-ink';
+const sub = tone === 'light' ? 'text-lime' : 'text-lime-deep';
+---
+
+<span class:list={['inline-flex items-center gap-3', compact ? 'gap-2' : 'gap-3']}>
+  <svg viewBox="0 0 72 64" class:list={[compact ? 'h-10 w-11' : 'h-12 w-14']} aria-hidden="true">
+    <path
+      fill="#91bb48"
+      d="M6 50c10-16 26-18 38-8 7 6 16 5 22-3 1 8-6 14-16 15H14c-6 1-10 0-8-4z"></path>
+    <path
+      d="M18 46 L28 30 L46 18 L60 28"
+      fill="none"
+      stroke={tone === 'light' ? '#f4f6f1' : '#14191f'}
+      stroke-width="5"
+      stroke-linecap="round"
+      stroke-linejoin="round"></path>
+    <circle cx="18" cy="46" r="6" fill={tone === 'light' ? '#f4f6f1' : '#14191f'}></circle>
+    <path
+      d="M56 26 l10 6 -8 8"
+      fill="none"
+      stroke={tone === 'light' ? '#f4f6f1' : '#14191f'}
+      stroke-width="4"
+      stroke-linecap="round"
+      stroke-linejoin="round"></path>
+  </svg>
+  <span class="font-display leading-none">
+    <span class:list={['block font-bold tracking-wide text-lime', compact ? 'text-2xl' : 'text-3xl']}>BL</span>
+    <span class:list={['block font-semibold tracking-[0.16em]', word, compact ? 'text-[11px]' : 'text-sm']}>GROUNDWORKS</span>
+    <span class:list={['block font-semibold tracking-[0.18em]', sub, compact ? 'text-[9px]' : 'text-[10px]']}>SCOTLAND LTD</span>
+  </span>
+</span>

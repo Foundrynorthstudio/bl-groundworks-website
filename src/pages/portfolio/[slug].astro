@@ -1,0 +1,88 @@
+---
+import { Image } from 'astro:assets';
+import Layout from '../../layouts/Layout.astro';
+import { services } from '../../data/services';
+import { phases } from '../../data/projects';
+import { getProject, getProjects, phaseCounts } from '../../lib/portfolio';
+import { business } from '../../data/site';
+
+export function getStaticPaths() {
+  return getProjects().map((project) => ({ params: { slug: project.slug } }));
+}
+
+const project = getProject(Astro.params.slug ?? '');
+if (!project) {
+  throw new Error('Missing project');
+}
+
+const counts = phaseCounts(project);
+const linkedServices = services.filter((service) => project.services.includes(service.slug));
+const crumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'Work', path: '/portfolio' },
+  { name: project.title, path: `/portfolio/${project.slug}` },
+];
+
+const imageLd = project.images.map((image) => ({
+  '@type': 'ImageObject',
+  contentUrl: new URL(image.src.src, business.url).href,
+  description: image.alt,
+  name: `${project.title} — ${image.phase}`,
+}));
+---
+
+<Layout
+  title={`${project.title} | Landscaping Portfolio | BL Groundworks`}
+  description={`${project.summary} Job file for BL Groundworks Scotland, based in Alloa.`}
+  breadcrumbs={crumbs}
+  extraJsonLd={imageLd}
+>
+  <article class="mx-auto max-w-6xl px-4 py-14">
+    <p class="text-sm font-semibold uppercase tracking-[0.18em] text-lime-deep">{project.place}</p>
+    <h1 class="mt-2 font-display text-6xl font-semibold leading-none tracking-wide">{project.title}</h1>
+    <p class="mt-5 max-w-2xl text-lg leading-relaxed text-muted">{project.summary}</p>
+
+    <ol class="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {counts.map((phase) => (
+        <li class="border border-line bg-white px-4 py-3">
+          <p class="font-display text-xl font-semibold tracking-wide">{phase.label}</p>
+          <p class="text-sm text-muted">{phase.count === 0 ? 'Waiting on photographs' : `${phase.count} photograph${phase.count === 1 ? '' : 's'}`}</p>
+        </li>
+      ))}
+    </ol>
+
+    <div class="mt-6 flex flex-wrap gap-2">
+      {linkedServices.map((service) => (
+        <a href={`/services/${service.slug}`} class="border border-line bg-white px-3 py-2 text-sm font-semibold">{service.name}</a>
+      ))}
+    </div>
+
+    {phases.map((phase) => {
+      const shots = project.images.filter((image) => image.phase === phase.id);
+      return (
+        <section class="mt-12" id={phase.id}>
+          <h2 class="font-display text-4xl font-semibold tracking-wide">{phase.label}</h2>
+          <p class="mt-1 text-sm text-muted">{phase.hint}</p>
+          {shots.length === 0 ? (
+            <p class="mt-4 border border-dashed border-line bg-white px-4 py-6 text-sm text-muted">
+              No {phase.label.toLowerCase()} photographs on this job yet.
+            </p>
+          ) : (
+            <ul class="mt-4 grid gap-4">
+              {shots.map((image) => (
+                <li class="border border-line bg-white">
+                  <Image src={image.src} alt={image.alt} class="w-full" widths={[640, 960, 1400]} sizes="(min-width: 1024px) 70vw, 100vw" />
+                  {image.caption && <p class="px-4 py-3 text-sm text-muted">{image.caption}</p>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      );
+    })}
+
+    <p class="mt-12">
+      <a href="/contact" class="bg-lime px-5 py-3 text-sm font-bold text-ink">Ask for a quote like this</a>
+    </p>
+  </article>
+</Layout>

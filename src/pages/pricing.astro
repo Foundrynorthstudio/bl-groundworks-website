@@ -1,0 +1,88 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { packages, rates, gbp } from '../data/pricing';
+import { business } from '../data/site';
+
+const crumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'Prices', path: '/pricing' },
+];
+
+const offerLd = packages.map((item) => ({
+  '@type': 'Offer',
+  name: `Example guide: ${item.name}`,
+  description: `${item.summary} Example guide only, confirmed after a site visit.`,
+  priceCurrency: 'GBP',
+  price: String(item.from),
+  url: `${business.url}/pricing#${item.id}`,
+}));
+---
+
+<Layout
+  title="Example Landscaping Prices | Alloa | BL Groundworks"
+  description="Example guide prices for garden tidies, patios, driveways, fencing, decking and full landscaping in Alloa and Clackmannanshire. Not a quote. Free site prices."
+  breadcrumbs={crumbs}
+  extraJsonLd={[{ '@type': 'OfferCatalog', name: 'Example guide prices', itemListElement: offerLd }]}
+>
+  <article class="mx-auto max-w-6xl px-4 py-14">
+    <p class="text-sm font-semibold uppercase tracking-[0.18em] text-lime-deep">Example guides</p>
+    <h1 class="mt-2 max-w-3xl font-display text-6xl font-semibold leading-none tracking-wide">Simple gardens through to full hardsurfacing.</h1>
+    <p class="mt-5 max-w-2xl text-lg leading-relaxed text-muted">
+      These figures show the shape of a job. They are not Brian’s quote, and they are not an offer you can accept off the page. Access, the depth of the dig, waste and the material you pick all move the number.
+    </p>
+
+    <div class="mt-8 border border-lime bg-white px-4 py-4 text-sm leading-relaxed">
+      The price that counts is the one given after a look at the plot. That quote is free and there is no obligation.{' '}
+      <a class="font-bold text-lime-deep underline" href="/contact">Ask for it</a>
+      {' '}or call{' '}
+      <a class="font-bold" href={business.telephoneHref}>{business.telephoneDisplay}</a>.
+    </div>
+
+    <div class="mt-10 grid gap-4">
+      {packages.map((item) => (
+        <section id={item.id} class="grid gap-4 border border-line bg-white p-5 md:grid-cols-12">
+          <div class="md:col-span-4">
+            <p class="text-xs font-semibold uppercase tracking-widest text-lime-deep">{item.band}</p>
+            <h2 class="mt-1 font-display text-3xl font-semibold tracking-wide">{item.name}</h2>
+            <p class="mt-3 font-display text-4xl font-semibold">From {gbp(item.from)}</p>
+          </div>
+          <div class="md:col-span-8">
+            <p class="text-sm leading-relaxed">{item.summary}</p>
+            <h3 class="mt-4 text-sm font-bold">The guide assumes</h3>
+            <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-muted">
+              {item.assumes.map((line) => <li>{line}</li>)}
+            </ul>
+            <p class="mt-3 text-sm leading-relaxed text-muted">{item.often}</p>
+          </div>
+        </section>
+      ))}
+    </div>
+
+    <section class="mt-14">
+      <h2 class="font-display text-4xl font-semibold tracking-wide">Rate card</h2>
+      <p class="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
+        Supply and lay, for straightforward domestic ground. Preparation that is heavier than a normal dig is written on the quote, not folded into the “from” figure.
+      </p>
+      <div class="mt-6 overflow-x-auto border border-line bg-white">
+        <table class="w-full min-w-[36rem] text-left text-sm">
+          <thead class="bg-ink text-white">
+            <tr>
+              <th class="px-4 py-3 font-semibold">Work</th>
+              <th class="px-4 py-3 font-semibold">Example from</th>
+              <th class="px-4 py-3 font-semibold">Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rates.map((rate) => (
+              <tr class="border-t border-line">
+                <th class="px-4 py-3 font-semibold">{rate.name}</th>
+                <td class="px-4 py-3">{rate.from}</td>
+                <td class="px-4 py-3 text-muted">{rate.note}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </article>
+</Layout>

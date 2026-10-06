@@ -1,0 +1,110 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Analytics from '../components/Analytics.astro';
+import { analyticsConfig } from '../lib/analytics';
+import { business, canonicalPath, defaultDescription, defaultTitle } from '../data/site';
+import { pageJsonLd } from '../lib/seo';
+import type { Faq } from '../data/faqs';
+
+interface Props {
+  title?: string;
+  description?: string;
+  breadcrumbs?: { name: string; path: string }[];
+  faqs?: Faq[];
+  extraJsonLd?: Record<string, unknown>[];
+  noindex?: boolean;
+}
+
+const {
+  title = defaultTitle,
+  description = defaultDescription,
+  breadcrumbs = [],
+  faqs = [],
+  extraJsonLd = [],
+  noindex = false,
+} = Astro.props;
+
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const canonical = canonicalPath(path);
+const ogImage = `${business.url}/og-image.png`;
+const schema = pageJsonLd({
+  type: path === '/' ? 'home' : 'page',
+  name: title,
+  description,
+  path,
+  breadcrumbs,
+  faqs,
+  extra: extraJsonLd,
+});
+const gsc = analyticsConfig().gsc;
+---
+
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content={noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'} />
+    <meta name="author" content={business.legalName} />
+    <meta name="geo.region" content="GB-SCT" />
+    <meta name="geo.placename" content="Alloa" />
+    <meta name="geo.position" content={`${business.latitude};${business.longitude}`} />
+    <meta name="ICBM" content={`${business.latitude}, ${business.longitude}`} />
+    <meta name="theme-color" content="#14191f" />
+    {gsc && <meta name="google-site-verification" content={gsc} />}
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang="en-GB" href={canonical} />
+    <link rel="alternate" hreflang="x-default" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+
+    <meta property="og:site_name" content={business.name} />
+    <meta property="og:locale" content="en_GB" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="BL Groundworks Scotland, landscaping and groundworks in Alloa" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+    <Analytics />
+  </head>
+  <body class="flex min-h-screen flex-col bg-paper pb-16 text-ink antialiased md:pb-0">
+    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-lime focus:px-3 focus:py-2">Skip to content</a>
+    <Header />
+    {breadcrumbs.length > 0 && (
+      <nav class="border-b border-line bg-white" aria-label="Breadcrumb">
+        <ol class="mx-auto flex max-w-6xl flex-wrap gap-2 px-4 py-3 text-sm text-muted">
+          {breadcrumbs.map((crumb, index) => (
+            <li class="flex items-center gap-2">
+              {index > 0 && <span aria-hidden="true">/</span>}
+              {index === breadcrumbs.length - 1 ? (
+                <span aria-current="page" class="text-ink">{crumb.name}</span>
+              ) : (
+                <a class="hover:text-lime-deep" href={crumb.path}>{crumb.name}</a>
+              )}
+            </li>
+          ))}
+        </ol>
+      </nav>
+    )}
+    <main id="main" class="flex-1">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

@@ -1,0 +1,33 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { areas } from '../../data/areas';
+
+const crumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'Areas', path: '/areas' },
+];
+---
+
+<Layout
+  title="Areas Covered from Alloa | BL Groundworks Scotland"
+  description="BL Groundworks is based in Alloa and covers Clackmannanshire plus Stirling, Falkirk and Dunfermline. Driveways, patios, fencing and landscaping."
+  breadcrumbs={crumbs}
+>
+  <section class="mx-auto max-w-6xl px-4 py-14">
+    <p class="text-sm font-semibold uppercase tracking-[0.18em] text-lime-deep">Areas</p>
+    <h1 class="mt-2 max-w-3xl font-display text-6xl font-semibold leading-none tracking-wide">Based in Alloa. Working the Wee County and just beyond it.</h1>
+    <p class="mt-5 max-w-2xl text-lg leading-relaxed text-muted">
+      Clackmannanshire is the core. Surrounding towns are taken when the job fits the diary. If your town is not listed, ask. The worst answer is a straight no.
+    </p>
+    <ul class="mt-10 grid gap-4 sm:grid-cols-2">
+      {areas.map((area) => (
+        <li class="border border-line bg-white">
+          <a href={`/areas/${area.slug}`} class="block h-full p-5 hover:bg-paper">
+            <h2 class="font-display text-3xl font-semibold tracking-wide">{area.name}</h2>
+            <p class="mt-2 text-sm leading-relaxed text-muted">{area.lead}</p>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+</Layout>

@@ -1,0 +1,32 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { business } from '../data/site';
+
+const crumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'Privacy', path: '/privacy' },
+];
+---
+
+<Layout
+  title="Privacy | BL Groundworks Scotland"
+  description="How BL Groundworks Scotland Ltd handles enquiry details sent through blgroundworks.com."
+  breadcrumbs={crumbs}
+>
+  <article class="mx-auto max-w-3xl space-y-4 px-4 py-14 text-sm leading-relaxed">
+    <h1 class="font-display text-5xl font-semibold tracking-wide">Privacy</h1>
+    <p>
+      {business.legalName} (company number {business.companyNumber}) uses this site to describe the work and to take quote enquiries.
+    </p>
+    <p>
+      The quote form asks for your name, phone number, email, town and a description of the job. That information is used to reply and to price the work. It is not sold. It is kept for as long as the enquiry, the quote, or the job needs it, and then removed.
+    </p>
+    <p>
+      The form is delivered through the site host. If Google Analytics is switched on, it records visits in the usual way so the company can see which pages are used. You can refuse analytics cookies in your browser.
+    </p>
+    <p>
+      To ask for a copy of an enquiry, or to ask for it to be deleted, email <a class="underline" href={business.emailHref}>{business.email}</a>.
+    </p>
+    <p>Registered office: {business.registeredOffice}.</p>
+  </article>
+</Layout>

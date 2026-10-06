@@ -1,0 +1,41 @@
+---
+import { analyticsConfig, analyticsEnabled } from '../lib/analytics';
+
+const config = analyticsConfig();
+const enabled = analyticsEnabled(config);
+---
+
+<script is:inline define:vars={{ config }}>
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = window.gtag || function gtag() {
+    window.dataLayer.push(arguments);
+  };
+  window.__BL_ANALYTICS = config;
+</script>
+
+{enabled && (
+  <>
+    <script is:inline src={`https://www.googletagmanager.com/gtag/js?id=${config.gaId}`} async></script>
+    <script is:inline define:vars={{ config }}>
+      window.gtag('js', new Date());
+      window.gtag('config', config.gaId);
+    </script>
+  </>
+)}
+
+<script>
+  document.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const link = target.closest('a[href^="tel:"]');
+    if (!link || typeof window.gtag !== 'function') return;
+    window.gtag('event', 'phone_click', { method: 'tel' });
+  });
+
+  document.addEventListener('submit', (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || form.name !== 'quote') return;
+    if (typeof window.gtag !== 'function') return;
+    window.gtag('event', 'generate_lead', { method: 'quote_form' });
+  });
+</script>

@@ -1,0 +1,118 @@
+---
+import { Image } from 'astro:assets';
+import Layout from '../../layouts/Layout.astro';
+import { services } from '../../data/services';
+import { phases } from '../../data/projects';
+import { coverImage, getProjects, phaseCounts } from '../../lib/portfolio';
+
+const projects = getProjects();
+const crumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'Work', path: '/portfolio' },
+];
+---
+
+<Layout
+  title="Landscaping Portfolio | Before, During & Completion | BL Groundworks"
+  description="Gardens, driveways, patios and decks by BL Groundworks Scotland. Each job is filed as before, behind the scenes, during and completion."
+  breadcrumbs={crumbs}
+>
+  <section class="mx-auto max-w-6xl px-4 py-14">
+    <p class="text-sm font-semibold uppercase tracking-[0.18em] text-lime-deep">Portfolio</p>
+    <h1 class="mt-2 max-w-3xl font-display text-6xl font-semibold leading-none tracking-wide">The work, stage by stage.</h1>
+    <p class="mt-5 max-w-2xl text-lg leading-relaxed text-muted">
+      A job file has four stages: before, behind the scenes, during, and completion. Filter the work, or open a job to see which photographs are in.
+    </p>
+
+    <div class="mt-8 flex flex-wrap gap-2" data-filters>
+      <button type="button" class="border border-ink bg-ink px-3 py-2 text-sm font-semibold text-white" data-filter="all">All work</button>
+      {services.map((service) => (
+        <button type="button" class="border border-line bg-white px-3 py-2 text-sm font-semibold" data-filter={service.slug}>{service.nav}</button>
+      ))}
+    </div>
+    <div class="mt-3 flex flex-wrap gap-2" data-phases>
+      <button type="button" class="border border-lime-deep px-3 py-2 text-xs font-bold uppercase tracking-wider text-lime-deep" data-phase="all">Any stage</button>
+      {phases.map((phase) => (
+        <button type="button" class="border border-line bg-white px-3 py-2 text-xs font-bold uppercase tracking-wider" data-phase={phase.id}>{phase.label}</button>
+      ))}
+    </div>
+
+    <p class="mt-6 hidden text-sm text-muted" data-empty>No published photographs for that filter yet. Completion shots are on the full list.</p>
+
+    <ul class="mt-6 grid gap-4 md:grid-cols-2" data-grid>
+      {projects.map((project) => {
+        const image = coverImage(project);
+        const counts = phaseCounts(project);
+        return (
+          <li
+            class="border border-line bg-white"
+            data-services={project.services.join(' ')}
+            data-has={counts.filter((phase) => phase.count > 0).map((phase) => phase.id).join(' ')}
+          >
+            <a href={`/portfolio/${project.slug}`} class="block">
+              {image && (
+                <Image src={image.src} alt={image.alt} class="aspect-[2/1] w-full object-cover" widths={[480, 900]} sizes="(min-width: 768px) 50vw, 100vw" />
+              )}
+              <div class="px-4 py-4">
+                <h2 class="font-display text-3xl font-semibold tracking-wide">{project.title}</h2>
+                <p class="mt-1 text-sm leading-relaxed text-muted">{project.summary}</p>
+                <p class="mt-3 text-xs font-semibold uppercase tracking-wider text-lime-deep">
+                  {counts.map((phase) => `${phase.label} ${phase.count || '—'}`).join(' · ')}
+                </p>
+              </div>
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  </section>
+</Layout>
+
+<script>
+  const serviceButtons = document.querySelectorAll<HTMLButtonElement>('[data-filters] [data-filter]');
+  const phaseButtons = document.querySelectorAll<HTMLButtonElement>('[data-phases] [data-phase]');
+  const cards = document.querySelectorAll<HTMLElement>('[data-grid] > li');
+  const empty = document.querySelector('[data-empty]');
+  let service = 'all';
+  let phase = 'all';
+
+  function paint(buttons: NodeListOf<HTMLButtonElement>, active: string, attr: string) {
+    buttons.forEach((button) => {
+      const on = button.dataset[attr] === active;
+      button.classList.toggle('bg-ink', on && attr === 'filter');
+      button.classList.toggle('text-white', on && attr === 'filter');
+      button.classList.toggle('border-ink', on && attr === 'filter');
+      button.classList.toggle('border-lime-deep', on && attr === 'phase');
+      button.classList.toggle('text-lime-deep', on && attr === 'phase');
+    });
+  }
+
+  function apply() {
+    let shown = 0;
+    cards.forEach((card) => {
+      const services = card.dataset.services ?? '';
+      const has = card.dataset.has ?? '';
+      const serviceOk = service === 'all' || services.split(' ').includes(service);
+      const phaseOk = phase === 'all' || has.split(' ').includes(phase);
+      const visible = serviceOk && phaseOk;
+      card.hidden = !visible;
+      if (visible) shown += 1;
+    });
+    empty?.classList.toggle('hidden', shown !== 0);
+  }
+
+  serviceButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      service = button.dataset.filter ?? 'all';
+      paint(serviceButtons, service, 'filter');
+      apply();
+    });
+  });
+  phaseButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      phase = button.dataset.phase ?? 'all';
+      paint(phaseButtons, phase, 'phase');
+      apply();
+    });
+  });
+</script>

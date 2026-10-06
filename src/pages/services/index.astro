@@ -1,0 +1,33 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { services } from '../../data/services';
+
+const crumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'Services', path: '/services' },
+];
+---
+
+<Layout
+  title="Landscaping Services in Alloa | BL Groundworks Scotland"
+  description="Driveways, patios, garden makeovers, fencing, decking, turfing, groundworks, drainage, walling and steps. Based in Alloa. Free quotes."
+  breadcrumbs={crumbs}
+>
+  <section class="mx-auto max-w-6xl px-4 py-14">
+    <p class="text-sm font-semibold uppercase tracking-[0.18em] text-lime-deep">Services</p>
+    <h1 class="mt-2 max-w-3xl font-display text-6xl font-semibold leading-none tracking-wide">From small jobs to complete transformations.</h1>
+    <p class="mt-5 max-w-2xl text-lg leading-relaxed text-muted">
+      The list on the van is the list on the site. Domestic and commercial, based in Alloa, covering Clackmannanshire and the towns around it.
+    </p>
+    <ul class="mt-10 grid gap-4 md:grid-cols-2">
+      {services.map((service) => (
+        <li class="border border-line bg-white">
+          <a href={`/services/${service.slug}`} class="block h-full p-5 hover:bg-paper">
+            <h2 class="font-display text-3xl font-semibold tracking-wide">{service.name}</h2>
+            <p class="mt-2 text-sm leading-relaxed text-muted">{service.lead}</p>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+</Layout>

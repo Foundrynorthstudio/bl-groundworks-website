@@ -1,0 +1,69 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { business } from '../data/site';
+
+const crumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'About', path: '/about' },
+];
+---
+
+<Layout
+  title="About BL Groundworks Scotland | Family-run, Alloa"
+  description="BL Groundworks Scotland Ltd is a family-run landscaping and groundworks company based in Alloa, led by Brian. Domestic and commercial. Fully insured."
+  breadcrumbs={crumbs}
+>
+  <article class="mx-auto max-w-6xl px-4 py-14">
+    <p class="text-sm font-semibold uppercase tracking-[0.18em] text-lime-deep">About</p>
+    <h1 class="mt-2 max-w-3xl font-display text-6xl font-semibold leading-none tracking-wide">Local. Reliable. The finish has to last.</h1>
+    <div class="mt-6 grid gap-8 lg:grid-cols-12">
+      <div class="max-w-2xl space-y-4 text-base leading-relaxed lg:col-span-7">
+        <p>
+          BL Groundworks Scotland Ltd is the family-run team customers know as Brian and the team. The work is landscaping and groundworks: drives, patios, lawns, fences, decks, steps, drainage, and the preparation under them.
+        </p>
+        <p>
+          The company is based in Alloa and works across Clackmannanshire and the surrounding towns. Domestic gardens and commercial plots are both taken. A small tidy is a real job. So is a full transformation with a new drive, patio, steps and fence in one plan.
+        </p>
+        <p>
+          Quotes are free and there is no obligation. The example prices on this site are there so you can see a range before you pick up the phone. The figure you are given after a look at the plot is the quote.
+        </p>
+        <p>
+          The team is fully insured. Photographs of the work are kept as a job file: before, behind the scenes, during, and completion. That is how a finish gets checked, and how the next customer can see what they are asking for.
+        </p>
+      </div>
+      <aside class="border border-line bg-white p-5 lg:col-span-5">
+        <h2 class="font-display text-2xl font-semibold tracking-wide">Company</h2>
+        <dl class="mt-4 space-y-3 text-sm">
+          <div>
+            <dt class="font-semibold">Trading name</dt>
+            <dd>{business.name}</dd>
+          </div>
+          <div>
+            <dt class="font-semibold">Legal name</dt>
+            <dd>{business.legalName}</dd>
+          </div>
+          <div>
+            <dt class="font-semibold">Company number</dt>
+            <dd><a class="underline" href={business.companiesHouseUrl}>{business.companyNumber}</a></dd>
+          </div>
+          <div>
+            <dt class="font-semibold">Based</dt>
+            <dd>{business.baseTown}, {business.addressRegion}</dd>
+          </div>
+          <div>
+            <dt class="font-semibold">Registered office</dt>
+            <dd>{business.registeredOffice}</dd>
+          </div>
+          <div>
+            <dt class="font-semibold">Phone</dt>
+            <dd><a class="font-semibold" href={business.telephoneHref}>{business.telephoneDisplay}</a></dd>
+          </div>
+          <div>
+            <dt class="font-semibold">Email</dt>
+            <dd><a class="underline" href={business.emailHref}>{business.email}</a></dd>
+          </div>
+        </dl>
+      </aside>
+    </div>
+  </article>
+</Layout>

@@ -1,0 +1,45 @@
+@import "@fontsource-variable/dm-sans/wght.css";
+@import "@fontsource/barlow-condensed/500.css";
+@import "@fontsource/barlow-condensed/600.css";
+@import "@fontsource/barlow-condensed/700.css";
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "DM Sans Variable", "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Barlow Condensed", "Arial Narrow", Impact, sans-serif;
+
+  --color-ink: #14191f;
+  --color-ink-soft: #1e2622;
+  --color-lime: #91bb48;
+  --color-lime-deep: #4f7a1e;
+  --color-moss: #243028;
+  --color-paper: #f4f6f1;
+  --color-line: #d5ddd0;
+  --color-muted: #4e594c;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.honeypot {
+  position: absolute;
+  left: -10000px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-lime-deep);
+  outline-offset: 3px;
+}

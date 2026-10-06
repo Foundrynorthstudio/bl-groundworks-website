@@ -1,0 +1,31 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { business } from '../data/site';
+
+const crumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'Terms', path: '/terms' },
+];
+---
+
+<Layout
+  title="Terms | BL Groundworks Scotland"
+  description="Terms for using blgroundworks.com and for example guide prices published by BL Groundworks Scotland Ltd."
+  breadcrumbs={crumbs}
+>
+  <article class="mx-auto max-w-3xl space-y-4 px-4 py-14 text-sm leading-relaxed">
+    <h1 class="font-display text-5xl font-semibold tracking-wide">Terms</h1>
+    <p>
+      This site is published by {business.legalName}, company number {business.companyNumber}, registered office {business.registeredOffice}.
+    </p>
+    <p>
+      Prices marked as example guides are illustrations. They are not an offer, not a quotation, and not a price you can accept by sending the form. A quotation is the figure given after the plot has been looked at, and it is only binding when you and the company agree it.
+    </p>
+    <p>
+      Photographs show the company’s work. A job file may be incomplete while earlier stages are still being added. They are not a specification for your garden.
+    </p>
+    <p>
+      Nothing on the site is advice about building regulations, permissions, or a shared boundary. Those are confirmed for the specific job.
+    </p>
+  </article>
+</Layout>

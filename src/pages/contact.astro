@@ -1,0 +1,38 @@
+---
+import Layout from '../layouts/Layout.astro';
+import QuoteForm from '../components/QuoteForm.astro';
+import { business } from '../data/site';
+
+const crumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'Contact', path: '/contact' },
+];
+---
+
+<Layout
+  title="Free Quote | BL Groundworks Scotland, Alloa"
+  description="Ask BL Groundworks for a free, no-obligation quote. Call 07718 898323 or email bl.groundworks@outlook.com. Based in Alloa."
+  breadcrumbs={crumbs}
+>
+  <section class="mx-auto grid max-w-6xl gap-10 px-4 py-14 lg:grid-cols-12">
+    <div class="lg:col-span-5">
+      <p class="text-sm font-semibold uppercase tracking-[0.18em] text-lime-deep">Contact</p>
+      <h1 class="mt-2 font-display text-6xl font-semibold leading-none tracking-wide">Get your free quote.</h1>
+      <p class="mt-5 text-lg leading-relaxed text-muted">
+        Call, email, or send the form. Photographs of the garden as it is now make the first conversation shorter.
+      </p>
+      <ul class="mt-6 space-y-3 text-sm">
+        <li><a class="font-display text-3xl font-semibold tracking-wide" href={business.telephoneHref}>{business.telephoneDisplay}</a></li>
+        <li><a class="font-semibold underline" href={business.emailHref}>{business.email}</a></li>
+        <li>Based in {business.baseTown}, {business.addressRegion}</li>
+        <li><a class="underline" href={business.mapsUrl}>Alloa on Google Maps</a></li>
+      </ul>
+      <p class="mt-6 text-sm leading-relaxed text-muted">
+        Example prices are on the <a class="font-semibold underline" href="/pricing">pricing page</a>. They are guides. This form asks for a surveyed quote.
+      </p>
+    </div>
+    <div class="border border-line bg-white p-5 sm:p-8 lg:col-span-7">
+      <QuoteForm heading="Tell us about the plot" />
+    </div>
+  </section>
+</Layout>

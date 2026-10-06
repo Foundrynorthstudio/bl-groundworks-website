@@ -1,0 +1,213 @@
+---
+import { Image } from 'astro:assets';
+import Layout from '../layouts/Layout.astro';
+import QuoteForm from '../components/QuoteForm.astro';
+import { business } from '../data/site';
+import { services } from '../data/services';
+import { areas } from '../data/areas';
+import { faqs } from '../data/faqs';
+import { reviews } from '../data/reviews';
+import { packages, gbp } from '../data/pricing';
+import { coverImage, getProjects, phaseCounts } from '../lib/portfolio';
+
+const projects = getProjects().slice(0, 4);
+const featuredPrices = ['garden-tidy', 'driveway', 'full-landscaping']
+  .map((id) => packages.find((item) => item.id === id))
+  .filter((item) => item !== undefined);
+
+const homeFaqs = faqs.slice(0, 4);
+---
+
+<Layout faqs={homeFaqs}>
+  <section class="bg-ink text-white">
+    <div class="mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 lg:grid-cols-12 lg:py-20">
+      <div class="lg:col-span-7">
+        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-lime">Alloa · Clackmannanshire</p>
+        <h1 class="mt-3 font-display text-6xl font-semibold leading-[0.9] tracking-wide sm:text-7xl">
+          Quality outside lasts longer.
+        </h1>
+        <p class="mt-5 max-w-xl text-lg leading-relaxed text-white/80">
+          Family-run landscaping and groundworks. Driveways, patios, fencing, turf and full garden transformations, from a small tidy to the whole plot.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="/contact" class="bg-lime px-5 py-3 text-sm font-bold tracking-wide text-ink">Free quote</a>
+          <a href={business.telephoneHref} class="border border-white/30 px-5 py-3 text-sm font-bold tracking-wide text-white">
+            {business.telephoneDisplay}
+          </a>
+        </div>
+        <p class="mt-4 text-sm text-white/60">No obligation. Domestic and commercial. Fully insured.</p>
+      </div>
+      <div class="grid gap-3 lg:col-span-5">
+        {projects.slice(0, 2).map((project) => {
+          const image = coverImage(project);
+          return image ? (
+            <a href={`/portfolio/${project.slug}`} class="group block border border-white/10">
+              <Image
+                src={image.src}
+                alt={image.alt}
+                class="aspect-[2/1] w-full object-cover"
+                widths={[360, 640, 960]}
+                sizes="(min-width: 1024px) 40vw, 100vw"
+                loading="eager"
+              />
+              <span class="block px-3 py-2 text-sm font-semibold tracking-wide text-lime group-hover:text-white">
+                {project.title}
+              </span>
+            </a>
+          ) : null;
+        })}
+      </div>
+    </div>
+  </section>
+
+  <section class="border-b border-line bg-white" aria-label="What the business is">
+    <ul class="mx-auto grid max-w-6xl gap-px bg-line sm:grid-cols-2 lg:grid-cols-5">
+      {[
+        ['Family run', 'Brian and the team'],
+        ['Based in Alloa', 'Clackmannanshire'],
+        ['Fully insured', 'Domestic and commercial'],
+        ['Small to complete', 'Tidy through to full plots'],
+        ['Free quotes', 'No obligation'],
+      ].map(([title, detail]) => (
+        <li class="bg-white px-4 py-5">
+          <p class="font-display text-xl font-semibold tracking-wide">{title}</p>
+          <p class="text-sm text-muted">{detail}</p>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-4 py-16">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-lime-deep">Services</p>
+        <h2 class="mt-1 font-display text-5xl font-semibold tracking-wide">We do it all.</h2>
+      </div>
+      <a href="/services" class="text-sm font-bold text-lime-deep underline">All services</a>
+    </div>
+    <ul class="mt-8 grid gap-px bg-line sm:grid-cols-2">
+      {services.map((service) => (
+        <li class="bg-white">
+          <a href={`/services/${service.slug}`} class="block h-full px-5 py-5 hover:bg-paper">
+            <h3 class="font-display text-2xl font-semibold tracking-wide">{service.name}</h3>
+            <p class="mt-1 text-sm leading-relaxed text-muted">{service.summary}</p>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="bg-white">
+    <div class="mx-auto max-w-6xl px-4 py-16">
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.18em] text-lime-deep">Portfolio</p>
+          <h2 class="mt-1 font-display text-5xl font-semibold tracking-wide">Finished work, filed properly.</h2>
+        </div>
+        <a href="/portfolio" class="text-sm font-bold text-lime-deep underline">Full portfolio</a>
+      </div>
+      <p class="mt-4 max-w-2xl text-sm leading-relaxed text-muted">
+        Each job is kept as before, behind the scenes, during, and completion. The photographs published today are the finished gardens and drives. The earlier stages are added as each job file is completed.
+      </p>
+      <ul class="mt-8 grid gap-4 md:grid-cols-2">
+        {projects.map((project) => {
+          const image = coverImage(project);
+          const counts = phaseCounts(project);
+          return (
+            <li class="border border-line bg-paper">
+              <a href={`/portfolio/${project.slug}`} class="block">
+                {image && (
+                  <Image src={image.src} alt={image.alt} class="aspect-[2/1] w-full object-cover" widths={[480, 800]} sizes="(min-width: 768px) 50vw, 100vw" />
+                )}
+                <div class="px-4 py-4">
+                  <h3 class="font-display text-2xl font-semibold tracking-wide">{project.title}</h3>
+                  <p class="mt-1 text-sm leading-relaxed text-muted">{project.summary}</p>
+                  <p class="mt-3 text-xs font-semibold uppercase tracking-wider text-lime-deep">
+                    {counts.map((phase) => `${phase.label} ${phase.count || '—'}`).join(' · ')}
+                  </p>
+                </div>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-4 py-16">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-lime-deep">Example guides</p>
+        <h2 class="mt-1 font-display text-5xl font-semibold tracking-wide">From a tidy to the full plot.</h2>
+      </div>
+      <a href="/pricing" class="text-sm font-bold text-lime-deep underline">All example prices</a>
+    </div>
+    <p class="mt-4 max-w-2xl text-sm leading-relaxed text-muted">
+      These are guides, so a job has a shape before you call. They are not a quote. Ground, access and materials move the number. The price after a look at the garden is the one that counts.
+    </p>
+    <ul class="mt-8 grid gap-4 lg:grid-cols-3">
+      {featuredPrices.map((item) => (
+        <li class="flex flex-col border border-line bg-white p-5">
+          <p class="text-xs font-semibold uppercase tracking-widest text-lime-deep">{item.band}</p>
+          <h3 class="mt-2 font-display text-3xl font-semibold tracking-wide">{item.name}</h3>
+          <p class="mt-3 font-display text-4xl font-semibold text-ink">From {gbp(item.from)}</p>
+          <p class="mt-3 flex-1 text-sm leading-relaxed text-muted">{item.summary}</p>
+          <a href="/pricing" class="mt-4 text-sm font-bold text-lime-deep underline">See what that assumes</a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="bg-ink text-white">
+    <div class="mx-auto max-w-6xl px-4 py-16">
+      <h2 class="font-display text-5xl font-semibold tracking-wide">What customers say.</h2>
+      <ul class="mt-8 grid gap-4 lg:grid-cols-3">
+        {reviews.map((review) => (
+          <li class="border border-white/15 p-5">
+            <p class="text-lime" aria-label="5 stars">★★★★★</p>
+            <blockquote class="mt-3 text-sm leading-relaxed text-white/85">“{review.quote}”</blockquote>
+            <p class="mt-4 text-xs font-semibold uppercase tracking-widest text-lime">{review.detail}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-4 py-16">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-lime-deep">Areas</p>
+        <h2 class="mt-1 font-display text-5xl font-semibold tracking-wide">Alloa, and the towns around it.</h2>
+      </div>
+      <a href="/areas" class="text-sm font-bold text-lime-deep underline">All areas</a>
+    </div>
+    <ul class="mt-8 flex flex-wrap gap-2">
+      {areas.map((area) => (
+        <li>
+          <a href={`/areas/${area.slug}`} class="inline-block border border-line bg-white px-3 py-2 text-sm font-semibold hover:border-lime-deep">
+            {area.name}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="border-t border-line bg-white">
+    <div class="mx-auto grid max-w-6xl gap-10 px-4 py-16 lg:grid-cols-2">
+      <div>
+        <h2 class="font-display text-5xl font-semibold tracking-wide">Questions</h2>
+        <div class="mt-6 divide-y divide-line border-y border-line">
+          {homeFaqs.map((faq) => (
+            <details class="group py-4">
+              <summary class="cursor-pointer list-none font-semibold [&::-webkit-details-marker]:hidden">{faq.question}</summary>
+              <p class="mt-2 text-sm leading-relaxed text-muted">{faq.answer}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+      <div class="border border-line bg-paper p-5 sm:p-8">
+        <QuoteForm />
+      </div>
+    </div>
+  </section>
+</Layout>

@@ -1,0 +1,70 @@
+---
+import { services } from '../data/services';
+
+interface Props {
+  heading?: string;
+}
+
+const { heading = 'Ask for a quote' } = Astro.props;
+---
+
+<form
+  name="quote"
+  method="POST"
+  action="/thanks"
+  data-netlify="true"
+  netlify-honeypot="bot-field"
+  class="grid gap-4"
+>
+  <input type="hidden" name="form-name" value="quote" />
+  <p class="honeypot" aria-hidden="true">
+    <label>Company website <input name="bot-field" tabindex="-1" autocomplete="off" /></label>
+  </p>
+
+  <div>
+    <h2 class="font-display text-3xl font-semibold tracking-wide text-ink">{heading}</h2>
+    <p class="mt-2 text-sm leading-relaxed text-muted">
+      Free, and no obligation. A town, the job, and a photograph of the plot are enough to start. Brian prices it after a look.
+    </p>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <label class="grid gap-1 text-sm font-semibold text-ink">
+      Name
+      <input required name="name" autocomplete="name" class="border border-line bg-white px-3 py-2 font-normal" />
+    </label>
+    <label class="grid gap-1 text-sm font-semibold text-ink">
+      Phone
+      <input required name="phone" type="tel" autocomplete="tel" class="border border-line bg-white px-3 py-2 font-normal" />
+    </label>
+    <label class="grid gap-1 text-sm font-semibold text-ink">
+      Email
+      <input required name="email" type="email" autocomplete="email" class="border border-line bg-white px-3 py-2 font-normal" />
+    </label>
+    <label class="grid gap-1 text-sm font-semibold text-ink">
+      Town
+      <input required name="town" autocomplete="address-level2" class="border border-line bg-white px-3 py-2 font-normal" />
+    </label>
+  </div>
+
+  <label class="grid gap-1 text-sm font-semibold text-ink">
+    Work
+    <select name="service" class="border border-line bg-white px-3 py-2 font-normal">
+      <option value="Not sure yet">Not sure yet</option>
+      {services.map((service) => <option value={service.name}>{service.name}</option>)}
+      <option value="Full landscaping">Full landscaping and hardsurfacing</option>
+    </select>
+  </label>
+
+  <label class="grid gap-1 text-sm font-semibold text-ink">
+    What needs doing
+    <textarea required name="message" rows="5" class="border border-line bg-white px-3 py-2 font-normal" placeholder="Rough size, what is there now, and when you would like it done."></textarea>
+  </label>
+
+  <button type="submit" class="justify-self-start bg-lime px-5 py-3 text-sm font-bold tracking-wide text-ink">
+    Send the enquiry
+  </button>
+  <p class="text-xs leading-relaxed text-muted">
+    Example prices are guides, not a quote. Sending this form asks for a surveyed price. See the <a class="underline" href="/privacy">privacy note</a>.
+  </p>
+</form>

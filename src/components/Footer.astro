@@ -1,0 +1,65 @@
+---
+import Logo from './Logo.astro';
+import { business } from '../data/site';
+import { services } from '../data/services';
+import { areas } from '../data/areas';
+---
+
+<footer class="border-t border-white/10 bg-ink text-white">
+  <div class="mx-auto grid max-w-6xl gap-10 px-4 py-12 md:grid-cols-4">
+    <div class="md:col-span-1">
+      <Logo />
+      <p class="mt-4 text-sm leading-relaxed text-white/75">
+        Landscaping and groundworks, based in Alloa. Domestic and commercial. Family run. Fully insured.
+      </p>
+    </div>
+
+    <div>
+      <h2 class="font-display text-lg font-semibold tracking-wide text-lime">Services</h2>
+      <ul class="mt-3 space-y-1.5 text-sm">
+        {services.map((service) => (
+          <li><a class="text-white/80 hover:text-lime" href={`/services/${service.slug}`}>{service.name}</a></li>
+        ))}
+      </ul>
+    </div>
+
+    <div>
+      <h2 class="font-display text-lg font-semibold tracking-wide text-lime">Areas</h2>
+      <ul class="mt-3 space-y-1.5 text-sm">
+        {areas.map((area) => (
+          <li><a class="text-white/80 hover:text-lime" href={`/areas/${area.slug}`}>{area.name}</a></li>
+        ))}
+      </ul>
+    </div>
+
+    <div>
+      <h2 class="font-display text-lg font-semibold tracking-wide text-lime">Get in touch</h2>
+      <ul class="mt-3 space-y-2 text-sm text-white/80">
+        <li><a class="font-semibold text-white hover:text-lime" href={business.telephoneHref}>{business.telephoneDisplay}</a></li>
+        <li><a class="hover:text-lime" href={business.emailHref}>{business.email}</a></li>
+        <li>Based in {business.baseTown}, {business.addressRegion}</li>
+        <li><a class="hover:text-lime" href={business.mapsUrl}>Alloa on Google Maps</a></li>
+        <li><a class="hover:text-lime" href="/contact">Free, no-obligation quote</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="border-t border-white/10">
+    <div class="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-5 text-xs leading-relaxed text-white/55 md:flex-row md:items-start md:justify-between">
+      <p>
+        {business.legalName}. Company number {business.companyNumber}. Registered office: {business.registeredOffice}.
+        The team trades from {business.baseTown}. The registered office is the Companies House address, not a yard you visit.
+      </p>
+      <p class="flex shrink-0 gap-4">
+        <a class="hover:text-lime" href="/privacy">Privacy</a>
+        <a class="hover:text-lime" href="/terms">Terms</a>
+        <a class="hover:text-lime" href="/sitemap.xml">Sitemap</a>
+      </p>
+    </div>
+  </div>
+</footer>
+
+<div class="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 border-t border-white/10 bg-ink md:hidden">
+  <a href={business.telephoneHref} class="px-4 py-3 text-center text-sm font-bold text-white">Call</a>
+  <a href="/contact" class="bg-lime px-4 py-3 text-center text-sm font-bold text-ink">Free quote</a>
+</div>
