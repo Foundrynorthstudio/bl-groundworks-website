@@ -3,7 +3,7 @@ import { Image } from 'astro:assets';
 import Layout from '../../layouts/Layout.astro';
 import { services } from '../../data/services';
 import { phases } from '../../data/projects';
-import { coverImage, getProjects, phaseCounts } from '../../lib/portfolio';
+import { cardLine, coverImage, getProjects, phaseCounts } from '../../lib/portfolio';
 
 const projects = getProjects();
 const crumbs = [
@@ -39,26 +39,35 @@ const crumbs = [
 
     <p class="mt-6 hidden text-sm text-muted" data-empty>No published photographs for that filter yet. Completion shots are on the full list.</p>
 
-    <ul class="mt-6 grid gap-4 md:grid-cols-2" data-grid>
-      {projects.map((project) => {
+    <ul class="mt-10 grid gap-x-6 gap-y-12 md:grid-cols-2" data-grid>
+      {projects.map((project, index) => {
         const image = coverImage(project);
         const counts = phaseCounts(project);
+        const lead = index === 0;
         return (
           <li
-            class="border border-line bg-white"
+            class={lead ? 'md:col-span-2' : ''}
             data-services={project.services.join(' ')}
             data-has={counts.filter((phase) => phase.count > 0).map((phase) => phase.id).join(' ')}
           >
             <a href={`/portfolio/${project.slug}`} class="block">
               {image && (
-                <Image src={image.src} alt={image.alt} class="aspect-[2/1] w-full object-cover" widths={[480, 900]} sizes="(min-width: 768px) 50vw, 100vw" />
+                <Image
+                  src={image.src}
+                  alt={image.alt}
+                  class:list={[lead ? 'h-72 w-full object-cover object-center' : 'aspect-[3/2] w-full object-cover object-center']}
+                  widths={lead ? [640, 1200, 1600] : [480, 900]}
+                  sizes={lead ? '(min-width: 768px) 72rem, 100vw' : '(min-width: 768px) 50vw, 100vw'}
+                />
               )}
-              <div class="px-4 py-4">
-                <h2 class="font-display text-3xl font-semibold tracking-wide">{project.title}</h2>
-                <p class="mt-1 text-sm leading-relaxed text-muted">{project.summary}</p>
-                <p class="mt-3 text-xs font-semibold uppercase tracking-wider text-lime-deep">
-                  {counts.map((phase) => `${phase.label} ${phase.count || '—'}`).join(' · ')}
-                </p>
+              <div class="pt-4">
+                <h2 class:list={['font-display font-semibold tracking-wide', lead ? 'text-5xl leading-none' : 'text-3xl']}>{project.title}</h2>
+                <p class="mt-3 text-sm leading-relaxed text-muted">{cardLine(project)}</p>
+                {!lead && (
+                  <p class="mt-3 text-xs text-muted">
+                    {counts.map((phase) => `${phase.label} ${phase.count || '—'}`).join(' · ')}
+                  </p>
+                )}
               </div>
             </a>
           </li>

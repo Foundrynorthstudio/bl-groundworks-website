@@ -66,11 +66,30 @@ export function getProject(slug: string) {
   return getProjects().find((project) => project.slug === slug);
 }
 
+export function cardLine(project: Pick<ProjectMeta, 'brief' | 'summary'>) {
+  if (!project.brief) return project.summary;
+  const sentence = project.brief.split(/(?<=\.)\s/)[0] ?? project.summary;
+  return sentence.endsWith('.') ? sentence : `${sentence}.`;
+}
+
 export function coverImage(project: Project) {
-  return (
-    project.images.find((image) => image.phase === 'completion') ??
-    project.images[0]
-  );
+  if (project.cover) {
+    const chosen = project.images.find((image) => image.file === project.cover);
+    if (chosen) return chosen;
+  }
+  return project.images.find((image) => image.phase === 'completion') ?? project.images[0];
+}
+
+export function heroImages(project: Project): ProjectImage[] {
+  const files = project.heroes?.length
+    ? project.heroes
+    : project.images.filter((image) => image.phase === 'completion').slice(0, 3).map((image) => image.file);
+  const frames = files
+    .map((file) => project.images.find((image) => image.file === file))
+    .filter((image): image is ProjectImage => Boolean(image));
+  if (frames.length > 0) return frames;
+  const cover = coverImage(project);
+  return cover ? [cover] : [];
 }
 
 export function phaseCounts(project: Project) {

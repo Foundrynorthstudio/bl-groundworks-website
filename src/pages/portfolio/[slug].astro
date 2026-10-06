@@ -1,9 +1,10 @@
 ---
 import { Image } from 'astro:assets';
 import Layout from '../../layouts/Layout.astro';
+import StageViewer from '../../components/StageViewer.astro';
 import { services } from '../../data/services';
 import { phases } from '../../data/projects';
-import { getProject, getProjects, phaseCounts } from '../../lib/portfolio';
+import { getProject, getProjects, heroImages } from '../../lib/portfolio';
 import { business } from '../../data/site';
 
 export function getStaticPaths() {
@@ -15,8 +16,66 @@ if (!project) {
   throw new Error('Missing project');
 }
 
-const counts = phaseCounts(project);
+const heroes = heroImages(project);
+const heroFiles = new Set(heroes.map((image) => image.file));
+const fullCase = Boolean(project.brief);
 const linkedServices = services.filter((service) => project.services.includes(service.slug));
+let galleries = phases
+  .map((phase) => ({
+    ...phase,
+    shots: project.images.filter((image) => image.phase === phase.id && !heroFiles.has(image.file)),
+  }))
+  .filter((phase) => phase.shots.length > 0);
+
+// A one-photo job's only frame is also the collage. Keep a single stage so the
+// button still has that photograph; stages that are empty after the hero exclusion stay omitted.
+if (galleries.length === 0 && heroes.length > 0) {
+  const phase = phases.find((item) => item.id === heroes[0].phase);
+  if (phase) galleries = [{ ...phase, shots: heroes }];
+}
+const missingEarlier = phases.some(
+  (phase) => phase.id !== 'completion' && !project.images.some((image) => image.phase === phase.id),
+);
+
+function formatDay(iso: string) {
+  const [year, month, day] = iso.split('-').map(Number);
+  return new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(year, (month ?? 1) - 1, day ?? 1));
+}
+
+function howLong(started?: string, finished?: string) {
+  if (!started || !finished) return '';
+  const start = Date.parse(`${started}T00:00:00`);
+  const end = Date.parse(`${finished}T00:00:00`);
+  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return '';
+  const days = Math.round((end - start) / 86_400_000);
+  if (days < 1) return 'Same day';
+  if (days === 1) return '1 day';
+  if (days < 14) return `${days} days`;
+  const weeks = Math.round(days / 7);
+  if (weeks === 1) return '1 week';
+  if (weeks < 10) return `${weeks} weeks`;
+  const months = Math.max(1, Math.round(days / 30.44));
+  return months === 1 ? '1 month' : `${months} months`;
+}
+
+const facts = [
+  project.started ? { label: 'Started', value: formatDay(project.started) } : null,
+  project.finished ? { label: 'Finished', value: formatDay(project.finished) } : null,
+  project.started && project.finished ? { label: 'How long', value: howLong(project.started, project.finished) } : null,
+].filter((fact): fact is { label: string; value: string } => Boolean(fact?.value));
+
+function collageSpan(index: number, count: number) {
+  if (count <= 1) return 'col-span-12 max-w-3xl';
+  if (count === 2) return index === 0 ? 'col-span-7' : 'col-span-5';
+  if (index === 0) return 'col-span-12 md:col-span-5';
+  if (index === 1) return 'col-span-7 md:col-span-4';
+  return 'col-span-5 md:col-span-3';
+}
+
 const crumbs = [
   { name: 'Home', path: '/' },
   { name: 'Work', path: '/portfolio' },
@@ -37,51 +96,102 @@ const imageLd = project.images.map((image) => ({
   breadcrumbs={crumbs}
   extraJsonLd={imageLd}
 >
-  <article class="mx-auto max-w-6xl px-4 py-14">
-    <p class="text-sm font-semibold uppercase tracking-[0.18em] text-lime-deep">{project.place}</p>
-    <h1 class="mt-2 font-display text-6xl font-semibold leading-none tracking-wide">{project.title}</h1>
-    <p class="mt-5 max-w-2xl text-lg leading-relaxed text-muted">{project.summary}</p>
+  <article>
+    {heroes.length > 0 && (
+      <div class="px-4 pt-4 sm:px-6">
+        <ul
+          class="mx-auto grid max-w-6xl grid-cols-12 items-start gap-3 sm:gap-4"
+          aria-label={`${project.title} finished photographs`}
+        >
+          {heroes.map((image, index) => (
+            <li class={collageSpan(index, heroes.length)}>
+              <Image
+                src={image.src}
+                alt={image.alt}
+                class="h-auto w-full"
+                widths={[480, 800, 1200, 1600]}
+                sizes={heroes.length === 1 ? '(min-width: 768px) 768px, 100vw' : '(min-width: 768px) 42vw, 70vw'}
+              />
+              {image.caption && <p class="mt-2 text-sm leading-relaxed text-muted">{image.caption}</p>}
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
 
-    <ol class="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      {counts.map((phase) => (
-        <li class="border border-line bg-white px-4 py-3">
-          <p class="font-display text-xl font-semibold tracking-wide">{phase.label}</p>
-          <p class="text-sm text-muted">{phase.count === 0 ? 'Waiting on photographs' : `${phase.count} photograph${phase.count === 1 ? '' : 's'}`}</p>
-        </li>
-      ))}
-    </ol>
+    <header class="mx-auto max-w-6xl px-6 py-14">
+      {project.place && (
+        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-lime-deep">{project.place}</p>
+      )}
+      <h1 class="mt-3 font-display text-6xl font-semibold leading-[0.9] tracking-wide sm:text-7xl">{project.title}</h1>
+      <p class="mt-6 max-w-[40rem] text-lg leading-relaxed text-muted">{project.summary}</p>
+      <p class="mt-6 text-sm">
+        {linkedServices.map((service, index) => (
+          <>
+            {index > 0 && <span class="text-muted"> · </span>}
+            <a href={`/services/${service.slug}`} class="font-semibold underline decoration-line underline-offset-4 hover:decoration-ink">{service.name}</a>
+          </>
+        ))}
+      </p>
+      {facts.length > 0 && (
+        <dl class="mt-8 flex flex-wrap gap-x-8 gap-y-3">
+          {facts.map((fact) => (
+            <div>
+              <dt class="text-xs font-semibold uppercase tracking-[0.18em] text-lime-deep">{fact.label}</dt>
+              <dd class="mt-1 text-sm">{fact.value}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      {fullCase && project.scope && project.scope.length > 0 && (
+        <div class="mt-10 max-w-[40rem]">
+          <h2 class="text-xs font-semibold uppercase tracking-[0.22em] text-lime-deep">What changed</h2>
+          <ul class="mt-3 border-t border-line">
+            {project.scope.map((item) => (
+              <li class="border-b border-line py-3 text-sm leading-relaxed">{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </header>
 
-    <div class="mt-6 flex flex-wrap gap-2">
-      {linkedServices.map((service) => (
-        <a href={`/services/${service.slug}`} class="border border-line bg-white px-3 py-2 text-sm font-semibold">{service.name}</a>
-      ))}
-    </div>
+    {project.brief && (
+      <section class="mx-auto max-w-6xl px-6 pb-8">
+        <h2 class="text-xs font-semibold uppercase tracking-[0.22em] text-lime-deep">The brief</h2>
+        <p class="mt-4 max-w-[40rem] text-lg leading-relaxed">{project.brief}</p>
+      </section>
+    )}
 
-    {phases.map((phase) => {
-      const shots = project.images.filter((image) => image.phase === phase.id);
-      return (
-        <section class="mt-12" id={phase.id}>
-          <h2 class="font-display text-4xl font-semibold tracking-wide">{phase.label}</h2>
-          <p class="mt-1 text-sm text-muted">{phase.hint}</p>
-          {shots.length === 0 ? (
-            <p class="mt-4 border border-dashed border-line bg-white px-4 py-6 text-sm text-muted">
-              No {phase.label.toLowerCase()} photographs on this job yet.
-            </p>
-          ) : (
-            <ul class="mt-4 grid gap-4">
-              {shots.map((image) => (
-                <li class="border border-line bg-white">
-                  <Image src={image.src} alt={image.alt} class="w-full" widths={[640, 960, 1400]} sizes="(min-width: 1024px) 70vw, 100vw" />
-                  {image.caption && <p class="px-4 py-3 text-sm text-muted">{image.caption}</p>}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      );
-    })}
+    {project.timeline && project.timeline.length > 0 && (
+      <section class="mx-auto max-w-6xl px-6 py-8">
+        <h2 class="text-xs font-semibold uppercase tracking-[0.22em] text-lime-deep">Timeline</h2>
+        <ol class="mt-4 max-w-[40rem]">
+          {project.timeline.map((step, index) => (
+            <li class="grid grid-cols-[3.5rem_1fr] gap-4 border-t border-line py-5">
+              <p class="font-display text-xl font-semibold tracking-wide text-lime-deep">
+                {step.date ? <time datetime={step.date}>{formatDay(step.date)}</time> : String(index + 1).padStart(2, '0')}
+              </p>
+              <div>
+                <p class="font-semibold">{step.label}</p>
+                {step.note && <p class="mt-1 text-sm leading-relaxed text-muted">{step.note}</p>}
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+    )}
 
-    <p class="mt-12">
+    {galleries.length > 0 && <StageViewer stages={galleries} missingEarlier={!fullCase && missingEarlier} />}
+
+    {project.feedback?.quote && (
+      <blockquote class="mx-auto max-w-6xl px-6 py-16">
+        <h2 class="text-xs font-semibold uppercase tracking-[0.22em] text-lime-deep">What the customer said</h2>
+        <p class="mt-4 max-w-[40rem] font-display text-4xl font-semibold leading-tight tracking-wide sm:text-5xl">“{project.feedback.quote}”</p>
+        {project.feedback.detail && <footer class="mt-4 text-sm text-muted">{project.feedback.detail}</footer>}
+      </blockquote>
+    )}
+
+    <p class="mx-auto max-w-6xl px-6 pt-8 pb-20">
       <a href="/contact" class="bg-lime px-5 py-3 text-sm font-bold text-ink">Ask for a quote like this</a>
     </p>
   </article>

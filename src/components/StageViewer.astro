@@ -1,0 +1,300 @@
+---
+import { Image } from 'astro:assets';
+import type { ProjectImage } from '../lib/portfolio';
+
+interface Stage {
+  id: string;
+  label: string;
+  hint: string;
+  shots: ProjectImage[];
+}
+
+interface Props {
+  stages: Stage[];
+  missingEarlier?: boolean;
+}
+
+const { stages, missingEarlier = false } = Astro.props;
+
+function wide(image: ProjectImage) {
+  return image.src.width >= image.src.height;
+}
+---
+
+<section class="mx-auto max-w-6xl px-4 pt-12 sm:px-6" aria-label="Photographs by stage" data-stage-viewer>
+  <div class="flex flex-wrap gap-2" role="tablist" aria-label="Photograph stages" data-stage-tabs>
+    {stages.map((stage, index) => (
+      <button
+        type="button"
+        role="tab"
+        id={`stage-tab-${stage.id}`}
+        aria-controls={`stage-panel-${stage.id}`}
+        aria-selected={index === 0 ? 'true' : 'false'}
+        tabindex={index === 0 ? 0 : -1}
+        data-stage-tab={stage.id}
+        class:list={[
+          'border px-3 py-2 text-sm font-semibold',
+          index === 0 ? 'border-ink bg-ink text-white' : 'border-line bg-white text-ink',
+        ]}
+      >
+        {stage.label}
+      </button>
+    ))}
+  </div>
+
+  {missingEarlier && (
+    <p class="mt-4 max-w-[40rem] text-sm leading-relaxed text-muted">Earlier stages are not on this job yet.</p>
+  )}
+
+  <div class="mt-6 overflow-hidden" data-stage-window>
+    <div class="grid grid-flow-col auto-cols-[100%] items-start" data-stage-track>
+      {stages.map((stage, index) => (
+        <div
+          role="tabpanel"
+          id={`stage-panel-${stage.id}`}
+          aria-labelledby={`stage-tab-${stage.id}`}
+          aria-hidden={index === 0 ? 'false' : 'true'}
+          inert={index !== 0}
+          data-stage-panel={stage.id}
+          class="min-w-0 overflow-hidden"
+        >
+          <div class="flex flex-wrap items-end justify-between gap-3">
+            <p class="max-w-[40rem] text-sm text-muted">{stage.hint}</p>
+            {stage.shots.length > 1 && (
+              <div class="flex gap-2" data-stage-controls>
+                <button
+                  type="button"
+                  data-stage-prev
+                  class="border border-line bg-white px-3 py-2 text-sm font-semibold disabled:opacity-40"
+                  aria-label={`Previous ${stage.label} photograph`}
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  data-stage-next
+                  class="border border-line bg-white px-3 py-2 text-sm font-semibold disabled:opacity-40"
+                  aria-label={`Next ${stage.label} photograph`}
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </div>
+
+          <ul
+            class="mt-4 flex w-full min-w-0 list-none items-start gap-4 overflow-x-auto pb-3"
+            data-stage-strip
+            tabindex={stage.shots.length > 1 ? 0 : undefined}
+            aria-label={`${stage.label} photographs`}
+          >
+            {stage.shots.map((image) => (
+              <li
+                class:list={['max-w-full snap-start shrink-0', wide(image) && 'w-[min(100%,48rem)]']}
+                style={wide(image) ? undefined : `width: calc(min(32rem, 70vh) * ${image.src.width} / ${image.src.height})`}
+                data-stage-frame
+              >
+                <Image
+                  src={image.src}
+                  alt={image.alt}
+                  draggable="false"
+                  loading="eager"
+                  class="block h-auto w-full select-none"
+                  widths={wide(image) ? [480, 800, 1200, 1600] : [480, 800, 1200]}
+                  sizes={wide(image) ? '(min-width: 768px) 48rem, 100vw' : '(min-width: 768px) 22rem, 70vw'}
+                />
+                {image.caption && <p class="mt-2 text-sm leading-relaxed text-muted">{image.caption}</p>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  [data-stage-track] {
+    transition: transform 300ms ease;
+  }
+
+  [data-stage-strip] {
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #d5ddd0 transparent;
+  }
+
+  [data-stage-strip]::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  [data-stage-strip]::-webkit-scrollbar-thumb {
+    background: #d5ddd0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-stage-track] {
+      transition: none;
+    }
+
+    [data-stage-strip] {
+      scroll-behavior: auto;
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-stage-viewer]').forEach((viewer) => {
+    const tabs = [...viewer.querySelectorAll<HTMLButtonElement>('[data-stage-tab]')];
+    const panels = [...viewer.querySelectorAll<HTMLElement>('[data-stage-panel]')];
+    const track = viewer.querySelector<HTMLElement>('[data-stage-track]');
+    const windowEl = viewer.querySelector<HTMLElement>('[data-stage-window]');
+    if (!track || !windowEl || tabs.length === 0 || panels.length === 0) return;
+
+    let current = 0;
+    let lastWidth = -1;
+    const indexByStrip = new WeakMap<HTMLElement, number>();
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    function framesOf(strip: HTMLElement) {
+      return [...strip.querySelectorAll<HTMLElement>('[data-stage-frame]')];
+    }
+
+    function nearestIndex(strip: HTMLElement) {
+      const frames = framesOf(strip);
+      const origin = strip.getBoundingClientRect().left;
+      let index = 0;
+      let best = Number.POSITIVE_INFINITY;
+      frames.forEach((frame, i) => {
+        const delta = Math.abs(frame.getBoundingClientRect().left - origin);
+        if (delta < best) {
+          best = delta;
+          index = i;
+        }
+      });
+      return index;
+    }
+
+    function scrollToIndex(strip: HTMLElement, index: number) {
+      const frames = framesOf(strip);
+      const clamped = Math.min(frames.length - 1, Math.max(0, index));
+      const frame = frames[clamped];
+      if (!frame) return;
+      indexByStrip.set(strip, clamped);
+      const left = frame.getBoundingClientRect().left - strip.getBoundingClientRect().left + strip.scrollLeft;
+      strip.scrollTo({ left, behavior: reduceMotion.matches ? 'auto' : 'smooth' });
+    }
+
+    function syncArrows(panel: HTMLElement) {
+      const strip = panel.querySelector<HTMLElement>('[data-stage-strip]');
+      const controls = panel.querySelector<HTMLElement>('[data-stage-controls]');
+      const prev = panel.querySelector<HTMLButtonElement>('[data-stage-prev]');
+      const next = panel.querySelector<HTMLButtonElement>('[data-stage-next]');
+      if (!strip || !controls || !prev || !next) return;
+      const max = strip.scrollWidth - strip.clientWidth;
+      controls.hidden = max <= 8;
+      prev.disabled = strip.scrollLeft <= 2;
+      next.disabled = strip.scrollLeft >= max - 2;
+    }
+
+    function paint(index: number) {
+      tabs.forEach((tab, i) => {
+        const on = i === index;
+        tab.setAttribute('aria-selected', on ? 'true' : 'false');
+        tab.tabIndex = on ? 0 : -1;
+        tab.classList.toggle('border-ink', on);
+        tab.classList.toggle('bg-ink', on);
+        tab.classList.toggle('text-white', on);
+        tab.classList.toggle('border-line', !on);
+        tab.classList.toggle('bg-white', !on);
+        tab.classList.toggle('text-ink', !on);
+      });
+      panels.forEach((panel, i) => {
+        const on = i === index;
+        panel.toggleAttribute('inert', !on);
+        panel.setAttribute('aria-hidden', on ? 'false' : 'true');
+      });
+    }
+
+    function place(animate: boolean) {
+      const width = windowEl.clientWidth;
+      if (width <= 0) return;
+      lastWidth = width;
+      const motion = animate && !reduceMotion.matches;
+      if (motion) {
+        track.style.transitionDuration = '';
+        void track.offsetWidth;
+      } else {
+        track.style.transitionDuration = '0s';
+      }
+      track.style.transform = `translate3d(${-current * width}px, 0, 0)`;
+      syncArrows(panels[current]);
+    }
+
+    function select(index: number, focusTab: boolean) {
+      current = index;
+      paint(index);
+      place(true);
+      if (focusTab) tabs[index]?.focus({ preventScroll: true });
+    }
+
+    tabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => select(index, false));
+    });
+
+    viewer.querySelector('[data-stage-tabs]')?.addEventListener('keydown', (event) => {
+      if (!(event instanceof KeyboardEvent)) return;
+      if (!(event.target instanceof HTMLButtonElement) || !event.target.matches('[data-stage-tab]')) return;
+      const key = event.key;
+      if (key !== 'ArrowLeft' && key !== 'ArrowRight' && key !== 'Home' && key !== 'End') return;
+      event.preventDefault();
+      const index = tabs.indexOf(event.target);
+      let next = index;
+      if (key === 'ArrowRight') next = (index + 1) % tabs.length;
+      if (key === 'ArrowLeft') next = (index - 1 + tabs.length) % tabs.length;
+      if (key === 'Home') next = 0;
+      if (key === 'End') next = tabs.length - 1;
+      select(next, true);
+    });
+
+    panels.forEach((panel) => {
+      const strip = panel.querySelector<HTMLElement>('[data-stage-strip]');
+      if (!strip) return;
+      strip.addEventListener('keydown', (event) => {
+        if (!(event instanceof KeyboardEvent)) return;
+        if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+        event.preventDefault();
+        const direction = event.key === 'ArrowRight' ? 1 : -1;
+        const index = indexByStrip.get(strip) ?? nearestIndex(strip);
+        scrollToIndex(strip, index + direction);
+      });
+      strip.addEventListener('pointerdown', () => indexByStrip.delete(strip));
+      strip.addEventListener('scroll', () => syncArrows(panel), { passive: true });
+      strip.addEventListener('scrollend', () => {
+        indexByStrip.set(strip, nearestIndex(strip));
+        syncArrows(panel);
+      });
+      panel.querySelector('[data-stage-prev]')?.addEventListener('click', () => {
+        const index = indexByStrip.get(strip) ?? nearestIndex(strip);
+        scrollToIndex(strip, index - 1);
+      });
+      panel.querySelector('[data-stage-next]')?.addEventListener('click', () => {
+        const index = indexByStrip.get(strip) ?? nearestIndex(strip);
+        scrollToIndex(strip, index + 1);
+      });
+    });
+
+    const observer = new ResizeObserver(() => {
+      if (windowEl.clientWidth !== lastWidth) place(false);
+      else syncArrows(panels[current]);
+    });
+    observer.observe(windowEl);
+    paint(0);
+    place(false);
+    if (document.readyState !== 'complete') {
+      window.addEventListener('load', () => place(false), { once: true });
+    }
+  });
+</script>
